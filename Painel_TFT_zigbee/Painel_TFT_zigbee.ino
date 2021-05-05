@@ -66,6 +66,7 @@ int c_help = 0; // Tempo em milissegundos em que a menagem de socorro aparece
 // Constantes comunicaçao
 const int x_icone_uart = 75;
 const int y_icone_uart = 5;
+String dados = "?";
 
 // ================================================================================================
 
@@ -76,7 +77,8 @@ int nv_comb  = 5; //Nível de combustivel
 bool isFuelRed = 0; // Flag que indica se o icone do combustivel ficara vermelho
 int rpm = 1200; // Rotacao do motor
 int vel = 0; // Velocidade da roda
-float temperatura = 0; //Temperatura da CVT
+int tempDecimos = 0; //Temperatura da CVT em [1/10 °C]
+int temperatura = 0; //Temperatura da CVT em [°C]
 bool isTempRed = 0; // Flag que indica se o icone do combustivel ficara vermelho
 int count_excel = 0; //numero de mensagens enviadas ao zigbee
 int out_freio = 0; //Flag que indica se o freio esta pressionado
@@ -91,40 +93,42 @@ bool nv_analog_on = 0; // O sinal do sensor de nivel analogico vai ser utilizado
 
 bool rpm_up=1,vel_up=1,temp_up=1,comb_up=1,bat_up=1; //apagar (apenas para teste)
 
-UTFT myGLCD(ITDB32S, 38, 39, 40, 41);
+//UTFT myGLCD(ITDB32S, 38, 39, 40, 41);
+UTFT myGLCD(SSD1289,38,39,40,41);
 TinyGPS gps;
 SoftwareSerial mySerial(10, 9); // RX, TX
 
 void setup() {
-  Serial.begin(38400);  // Zigbee
+  Serial.begin(9600);  // Imprimir no Monitor Serial
   //Serial1.begin(9600);  // GPS
-  Serial1.begin(38400);  // Apagar (aspenas para testar o zigbee)
-  Serial2.begin(38400); // Tarsila
-  Serial3.begin(38400); // Diana
-  mySerial.begin(38400); //
+  Serial1.begin(9600);  // Apagar (apenas para testar o zigbee)
+  Serial2.begin(9600); // Tarsila
+  //Serial2.setTimeout(100);
+  Serial3.begin(9600); // Diana
+  //Serial3.setTimeout(200);
+  mySerial.begin(9600); // Zigbee
   while(!Serial || !Serial1 || !Serial2 || !Serial3 || !mySerial);
-  
-//  myGLCD.InitLCD();
-//  myGLCD.clrScr();
-//  myGLCD.setFont(BigFont);
-//  myGLCD.drawBitmap(5, 5, 54, 50, logobaja, 1);
-//  myGLCD.drawBitmap(x_icone_uart, y_icone_uart, 42, 35, uart, 1);
-//  tacometro_setup();
-//  velocidade_setup();
-//  combustivel_setup();
-//  temperatura_setup();
-//  bateria_setup();
+  myGLCD.InitLCD();                                                   // Inicia o display
+  myGLCD.clrScr();                                                    // Limpa a tela do display
+  myGLCD.setFont(BigFont);
+  myGLCD.drawBitmap(5, 5, 54, 50, logobaja, 1);
+  myGLCD.drawBitmap(x_icone_uart, y_icone_uart, 42, 35, uart, 1);
+  tacometro_setup();
+  velocidade_setup();
+  combustivel_setup();
+  temperatura_setup();
+  bateria_setup();
 }
 
 void loop() {
-  teste(); // Deixar comentado! Descomentar apenas para teste
-//  getDados(); // Recebe os dados dos outrso modulos e atualiza as variaveis (comentar essa linha se "teste()" estiver descomentado)
-//  verifica_comunicacao(); // Sinaliza na tela se ha erros no recebimento de dados (D,T,G) --> (Diana,Tarsila,GPS)
-//  tacometro(rpm); // Atualiza o indicador de rotaçao na tela
-//  velocidade(vel); // Atualiza o indicador de velocidade na tela
-//  termometro(temperatura); // Atualiza o indicador de temperatura na tela
-//  bateria(nv_bat); // Atualiza o indicador de bateria na tela
-//  combustivel(nv_comb); // Atualiza o indicador de combustivel na tela
+//  teste(); // Deixar comentado! Descomentar apenas para teste
+  getDados(); // Recebe os dados dos outros modulos e atualiza as variaveis (comentar essa linha se "teste()" estiver descomentado)
+  verifica_comunicacao(); // Sinaliza na tela se ha erros no recebimento de dados (D,T,G) --> (Diana,Tarsila,GPS)
+  tacometro(rpm); // Atualiza o indicador de rotaçao na tela
+  velocidade(vel); // Atualiza o indicador de velocidade na tela
+  termometro(); // Atualiza o indicador de temperatura na tela
+  bateria(nv_bat); // Atualiza o indicador de bateria na tela
+  combustivel(nv_comb); // Atualiza o indicador de combustivel na tela
   zigbee(); // Envia os dados de todos os sensores para o zigbee
-  //delay(30);
+  delay(30);
 }
